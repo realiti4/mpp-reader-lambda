@@ -12,12 +12,14 @@ using Amazon.Runtime.Internal.Util;
 namespace mpp_reader_lambda;
 
 public class Function
+{
     public string FunctionHandler(string input, ILambdaContext context)
     {
         AmazonS3Client client = new AmazonS3Client();
 
         string objectName = "home_backup/flex.mpp";
-        string filePath = @"C:\sil";
+        // string filePath = @"C:\sil";
+        string filePath = System.IO.Path.GetTempPath();
 
         bool result = AsyncHelpers.RunSync<bool>(() => GetFile.DownloadObjectFromBucketAsync(
             client,
@@ -25,8 +27,6 @@ public class Function
             objectName,
             filePath
         ));
-
-        //string result = System.IO.Path.GetTempPath();
 
         string testName = string.Empty;
 
