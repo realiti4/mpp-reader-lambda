@@ -13,5 +13,7 @@
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.Core" Version="2.1.0" />
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.3.1" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.201.4" />
+    <PackageReference Include="net.sf.mpxj-for-csharp" Version="12.0.2" />
   </ItemGroup>
 </Project>
