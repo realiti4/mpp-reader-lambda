@@ -1,53 +1,88 @@
-using Amazon.Lambda.Core;
-using Amazon.S3.Model;
-using Amazon.S3;
+using System.Collections.Generic;
+using System.Net;
+using System.Text.Json.Serialization;
+using System.IO;
 
-using net.sf.mpxj.reader;
-using Task = net.sf.mpxj.Task;
+using Amazon.Lambda.Core;
+using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.Serialization.SystemTextJson;
+using System.ComponentModel;
+using System.Text.Json;
+using java.nio.file;
 using Amazon.Runtime.Internal.Util;
 
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
+using net.sf.mpxj;
+using net.sf.mpxj.reader;
+using net.sf.mpxj.writer;
+using net.sf.mpxj.mpp;
+using net.sf.mpxj.MpxjUtilities;
+using net.sf.mpxj.sample;
+
+[assembly: Amazon.Lambda.Core.LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
 namespace mpp_reader_lambda;
 
+[JsonSerializable(typeof(APIGatewayHttpApiV2ProxyRequest))]
+[JsonSerializable(typeof(APIGatewayHttpApiV2ProxyResponse))]
+
+
 public class Function
 {
-    public string FunctionHandler(string input, ILambdaContext context)
+    public APIGatewayProxyResponse FunctionHandler(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
     {
-        AmazonS3Client client = new AmazonS3Client();
 
-        string objectName = "home_backup/flex.mpp";
-        // string filePath = @"C:\sil";
-        string filePath = System.IO.Path.GetTempPath();
+        string url = request.QueryStringParameters["mppurl"];
 
-        bool result = AsyncHelpers.RunSync<bool>(() => GetFile.DownloadObjectFromBucketAsync(
-            client,
-            "realitifiles",
-            objectName,
-            filePath
+        string filePath = AsyncHelpers.RunSync<string>(() => GetFile.DownloadFile(
+            url
         ));
 
-        string testName = string.Empty;
+        string pathToSave = System.IO.Path.GetTempPath();
+        pathToSave = System.IO.Path.Combine(pathToSave, "temp.json");
 
-        if (result)
+        new MpxjConvert().Process(filePath, pathToSave);
+
+        string json = "";
+
+        using (StreamReader file = File.OpenText(pathToSave))
         {
-            var project = new UniversalProjectReader().read($"{filePath}\\{objectName}");
+            json = file.ReadToEnd();
+        };
 
-            foreach (Task task in project.Tasks)
-            {
-                testName += task.Name.ToString();
-                break;
-            }
-        }
-        else
+
+        //return result.ToUpper();
+
+        //var response = new APIGatewayHttpApiV2ProxyResponse
+        //{
+        //    StatusCode = (int)HttpStatusCode.OK,
+        //    Body = JsonSerializer.Serialize(new Dictionary<string, string>
+        //        {
+        //            {"karakara", "love you"}
+        //        }),
+        //    Headers = new Dictionary<string, string>
+        //        {
+        //            {"Content-Type", "application/json"},
+        //            {"Access-Control-Allow-Origin", "*"},
+        //            {"Access-Control-Allow-Credentials", "true"}
+        //        }
+        //};
+
+        //return response;
+
+        return new APIGatewayProxyResponse
         {
-            testName = "result is false";
-        }
-
-
-        Console.WriteLine(result);
-
-        return testName;
+            StatusCode = (int)HttpStatusCode.OK,
+            Body = json,
+            //Body = JsonSerializer.Serialize(new Dictionary<string, string>
+            //    {
+            //        {"karakara", "love you"}
+            //    }),
+            Headers = new Dictionary<string, string>
+                {
+                    {"Content-Type", "application/json"},
+                    {"Access-Control-Allow-Origin", "*"},
+                    {"Access-Control-Allow-Credentials", "true"}
+                }
+        };
     }
 }
