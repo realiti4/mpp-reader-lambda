@@ -13,7 +13,7 @@ namespace mpp_reader_lambda
         public static async Task<string> DownloadFile(string url)
         {
             string pathToSave = System.IO.Path.GetTempPath();
-            pathToSave = Path.Combine(pathToSave, "temp.json");
+            pathToSave = Path.Combine(pathToSave, "temp.mpp");
 
             using (var httpClient = new HttpClient())
             {
@@ -27,6 +27,8 @@ namespace mpp_reader_lambda
                 using var resultStream = await httpResult.Content.ReadAsStreamAsync();
                 using var fileStream = File.Create(pathToSave);
                 resultStream.CopyTo(fileStream);
+
+                Console.WriteLine(pathToSave);
 
                 return pathToSave;
             }

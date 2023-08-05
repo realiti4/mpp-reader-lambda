@@ -40,6 +40,8 @@ public class Function
         string pathToSave = System.IO.Path.GetTempPath();
         pathToSave = System.IO.Path.Combine(pathToSave, "temp.json");
 
+        Console.WriteLine(pathToSave);
+
         new MpxjConvert().Process(filePath, pathToSave);
 
         string json = "";
@@ -49,25 +51,6 @@ public class Function
             json = file.ReadToEnd();
         };
 
-
-        //return result.ToUpper();
-
-        //var response = new APIGatewayHttpApiV2ProxyResponse
-        //{
-        //    StatusCode = (int)HttpStatusCode.OK,
-        //    Body = JsonSerializer.Serialize(new Dictionary<string, string>
-        //        {
-        //            {"karakara", "love you"}
-        //        }),
-        //    Headers = new Dictionary<string, string>
-        //        {
-        //            {"Content-Type", "application/json"},
-        //            {"Access-Control-Allow-Origin", "*"},
-        //            {"Access-Control-Allow-Credentials", "true"}
-        //        }
-        //};
-
-        //return response;
 
         return new APIGatewayHttpApiV2ProxyResponse
         {
