@@ -30,32 +30,45 @@ public class Function
 {
     public APIGatewayHttpApiV2ProxyResponse FunctionHandler(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
     {
+        string message;
 
-        string url = request.QueryStringParameters["mppurl"];
-
-        string filePath = AsyncHelpers.RunSync<string>(() => GetFile.DownloadFile(
-            url
-        ));
-
-        string pathToSave = System.IO.Path.GetTempPath();
-        pathToSave = System.IO.Path.Combine(pathToSave, "temp.json");
-
-        Console.WriteLine(pathToSave);
-
-        new MpxjConvert().Process(filePath, pathToSave);
-
-        string json = "";
-
-        using (StreamReader file = File.OpenText(pathToSave))
+        if (request.QueryStringParameters == null || !request.QueryStringParameters.ContainsKey("mppurl"))
         {
-            json = file.ReadToEnd();
-        };
+            message = "mppurl parameter is required.";
+        } else
+        {
+            try
+            {
+                string url = request.QueryStringParameters["mppurl"];
+
+                string filePath = AsyncHelpers.RunSync<string>(() => GetFile.DownloadFile(
+                    url
+                ));
+
+                string pathToSave = System.IO.Path.GetTempPath();
+                pathToSave = System.IO.Path.Combine(pathToSave, "temp.json");
+
+                Console.WriteLine(pathToSave);
+
+                new MpxjConvert().Process(filePath, pathToSave);
+
+                using (StreamReader file = File.OpenText(pathToSave))
+                {
+                    message = file.ReadToEnd();
+                };
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
 
 
         return new APIGatewayHttpApiV2ProxyResponse
         {
             StatusCode = (int)HttpStatusCode.OK,
-            Body = json,
+            Body = message,
             //Body = JsonSerializer.Serialize(new Dictionary<string, string>
             //    {
             //        {"karakara", "love you"}
