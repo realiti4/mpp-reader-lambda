@@ -1,61 +1,36 @@
-﻿using System;
+﻿using com.sun.org.apache.xml.@internal.resolver.helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Amazon.S3.Model;
-using Amazon.S3;
 
 namespace mpp_reader_lambda
 {
     internal class GetFile
     {
-        public static async Task<bool> DownloadObjectFromBucketAsync(
-            IAmazonS3 client,
-            string bucketName,
-            string objectName,
-            string filePath)
+        public static async Task<string> DownloadFile(string url)
         {
-            // Create a GetObject request
-            var request = new GetObjectRequest
+            string pathToSave = System.IO.Path.GetTempPath();
+            pathToSave = Path.Combine(pathToSave, "temp.mpp");
+
+            using (var httpClient = new HttpClient())
             {
-                BucketName = bucketName,
-                Key = objectName,
-            };
+                //var json = await httpClient.GetStringAsync(url);
 
+                //// Now parse with JSON.Net
+                //JObject o = JObject.Parse(json);
+                //return o.ToString();
 
-            //filePath = System.IO.Path.GetTempPath();
+                var httpResult = await httpClient.GetAsync(url);
+                using var resultStream = await httpResult.Content.ReadAsStreamAsync();
+                using var fileStream = File.Create(pathToSave);
+                resultStream.CopyTo(fileStream);
 
-            // Issue request and remember to dispose of the response
-            using GetObjectResponse response = await client.GetObjectAsync(request);
+                Console.WriteLine(pathToSave);
 
-            try
-            {
-                //return true;
-
-                // Save object to local file
-                await response.WriteResponseStreamToFileAsync($"{filePath}\\{objectName}", true, CancellationToken.None);
-                return response.HttpStatusCode == System.Net.HttpStatusCode.OK;
+                return pathToSave;
             }
-            catch (AmazonS3Exception ex)
-            {
-                Console.WriteLine($"Error saving {objectName}: {ex.Message}");
-                return false;
-            }
-
-            //// Issue request and remember to dispose of the response
-            //using (GetObjectResponse response = await client.GetObjectAsync(request))
-            //{
-            //    using (StreamReader reader = new StreamReader(response.ResponseStream))
-            //    {
-            //        string contents = reader.ReadToEnd();
-            //        Console.WriteLine("Object - " + response.Key);
-            //        Console.WriteLine(" Version Id - " + response.VersionId);
-            //        Console.WriteLine(" Contents - " + contents);
-
-            //        return true;
-            //    }
-            //}
         }
     }
 }
