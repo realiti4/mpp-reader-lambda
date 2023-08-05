@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/dotnet:6
+FROM public.ecr.aws/lambda/dotnet:7
 
 WORKDIR /var/task
 
@@ -10,6 +10,6 @@ WORKDIR /var/task
 #
 # Alternatively Docker multi-stage build could be used to build the .NET Lambda project inside the image.
 # For more information on this approach checkout the project's README.md file.
-COPY "bin/Release/net6.0"  .
+COPY "bin/Release/net7.0"  .
 
 CMD [ "mpp-reader-lambda::mpp_reader_lambda.Function::FunctionHandler" ]
