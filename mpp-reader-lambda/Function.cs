@@ -28,7 +28,7 @@ namespace mpp_reader_lambda;
 
 public class Function
 {
-    public APIGatewayProxyResponse FunctionHandler(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
+    public APIGatewayHttpApiV2ProxyResponse FunctionHandler(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
     {
 
         string url = request.QueryStringParameters["mppurl"];
@@ -69,7 +69,7 @@ public class Function
 
         //return response;
 
-        return new APIGatewayProxyResponse
+        return new APIGatewayHttpApiV2ProxyResponse
         {
             StatusCode = (int)HttpStatusCode.OK,
             Body = json,
