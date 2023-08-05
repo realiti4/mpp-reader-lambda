@@ -27,8 +27,6 @@ namespace mpp_reader_lambda
                 using var fileStream = File.Create(pathToSave);
                 resultStream.CopyTo(fileStream);
 
-                Console.WriteLine(pathToSave);
-
                 return pathToSave;
             }
         }
