@@ -36,6 +36,7 @@ public class Function
 
         if (request.QueryStringParameters == null || !request.QueryStringParameters.ContainsKey("mppurl"))
         {
+            statusCode = (int)HttpStatusCode.BadRequest;
             message = JsonSerializer.Serialize(new Dictionary<string, string>
                 {
                     {"message", "mppurl parameter is required."}
@@ -63,7 +64,7 @@ public class Function
             }
             catch (Exception e)
             {
-                statusCode = (int)HttpStatusCode.BadRequest;
+                statusCode = (int)HttpStatusCode.InternalServerError;
                 message = JsonSerializer.Serialize(new Dictionary<string, string>
                 {
                     {"message", "Something went wrong."}
