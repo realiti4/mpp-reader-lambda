@@ -17,6 +17,7 @@ using net.sf.mpxj.writer;
 using net.sf.mpxj.mpp;
 using net.sf.mpxj.MpxjUtilities;
 using net.sf.mpxj.sample;
+using java.util;
 
 [assembly: Amazon.Lambda.Core.LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
@@ -30,11 +31,15 @@ public class Function
 {
     public APIGatewayHttpApiV2ProxyResponse FunctionHandler(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
     {
+        int statusCode = (int)HttpStatusCode.OK;
         string message;
 
         if (request.QueryStringParameters == null || !request.QueryStringParameters.ContainsKey("mppurl"))
         {
-            message = "mppurl parameter is required.";
+            message = JsonSerializer.Serialize(new Dictionary<string, string>
+                {
+                    {"message", "mppurl parameter is required."}
+                });
         } else
         {
             try
@@ -48,8 +53,6 @@ public class Function
                 string pathToSave = System.IO.Path.GetTempPath();
                 pathToSave = System.IO.Path.Combine(pathToSave, "temp.json");
 
-                Console.WriteLine(pathToSave);
-
                 new MpxjConvert().Process(filePath, pathToSave);
 
                 using (StreamReader file = File.OpenText(pathToSave))
@@ -59,6 +62,12 @@ public class Function
             }
             catch (Exception e)
             {
+                statusCode = (int)HttpStatusCode.BadRequest;
+                message = JsonSerializer.Serialize(new Dictionary<string, string>
+                {
+                    {"message", "Something went wrong."}
+                });
+
                 Console.WriteLine(e);
                 throw;
             }
@@ -67,12 +76,8 @@ public class Function
 
         return new APIGatewayHttpApiV2ProxyResponse
         {
-            StatusCode = (int)HttpStatusCode.OK,
+            StatusCode = statusCode,
             Body = message,
-            //Body = JsonSerializer.Serialize(new Dictionary<string, string>
-            //    {
-            //        {"karakara", "love you"}
-            //    }),
             Headers = new Dictionary<string, string>
                 {
                     {"Content-Type", "application/json"},
