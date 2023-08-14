@@ -32,6 +32,7 @@ public class Function
     public APIGatewayHttpApiV2ProxyResponse FunctionHandler(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
     {
         int statusCode = (int)HttpStatusCode.OK;
+        string contentType = "application/json";
         string message;
 
         if (request.QueryStringParameters == null || !request.QueryStringParameters.ContainsKey("mppurl"))
@@ -46,6 +47,7 @@ public class Function
         {
             try
             {
+                contentType = request.QueryStringParameters.ContainsKey("mppurl") && request.QueryStringParameters["type"] == "xml" ? "application/xml" : "application/json";
                 string url = request.QueryStringParameters["mppurl"];
 
                 string filePath = AsyncHelpers.RunSync<string>(() => GetFile.DownloadFile(
@@ -53,7 +55,9 @@ public class Function
                 ));
 
                 string pathToSave = System.IO.Path.GetTempPath();
-                pathToSave = System.IO.Path.Combine(pathToSave, "temp.json");
+                string fileName = contentType == "application/xml" ? "temp.xml" : "temp.json";
+
+                pathToSave = System.IO.Path.Combine(pathToSave, fileName);
 
                 new MpxjConvert().Process(filePath, pathToSave);
 
@@ -82,7 +86,7 @@ public class Function
             Body = message,
             Headers = new Dictionary<string, string>
                 {
-                    {"Content-Type", "application/json"},
+                    {"Content-Type", contentType},
                     {"Access-Control-Allow-Origin", "*"},
                     {"Access-Control-Allow-Credentials", "true"}
                 }
